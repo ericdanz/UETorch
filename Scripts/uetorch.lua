@@ -35,6 +35,7 @@ bool CaptureDepthField(UObject* _this, const IntSize* size, void* data, int stri
 
 void PressKey(const char *key, int ControllerId, int eventType);
 bool SetTickDeltaBounds(UObject* _this, float MinDeltaSeconds, float MaxDeltaSeconds);
+bool GetActorPose(UObject* _this,void* location_data, const AActor* object, bool verbose);
 
 ]]
 
@@ -393,4 +394,28 @@ function DepthField(stride, verbose)
    end
 
    return depth
+end
+
+function LogDepthField(stride,verbose)
+  verbose = verbose or false
+  local depthFieldImage = DepthField(stride,verbose)
+  depthFieldImage:add(1e-8):log()
+  depthFieldImage:csub(depthFieldImage:min())
+  return depthFieldImage
+end
+
+
+function GetPoses(actors,verbose)
+  local poseTensor = torch.FloatTensor(#actors,7)
+  verbose = verbose or false
+  for actorIndex = 1,#actors do
+    local pose = torch.FloatTensor(7)
+    if not utlib.GetActorPose(this,pose:storage():cdata().data,actors[actorIndex],verbose) then
+      print("ERROR: Unable to get actor pose")
+      return nil
+    end
+    print(pose)
+    poseTensor[{ {actorIndex} }] = pose:clone()
+  end
+  return poseTensor
 end

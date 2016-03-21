@@ -58,12 +58,12 @@ void FUETorch::ShutdownModule()
 // This is an SFINAE check to see whether the patch has been applied.
 struct UWorldHasMinDeltaSeconds
 {
-    struct Fallback { int MinDeltaSeconds; }; 
+    struct Fallback { int MinDeltaSeconds; };
     struct Combined : UWorld, Fallback { };
-    template<typename U, U> struct SFINAE; 
+    template<typename U, U> struct SFINAE;
 
-    template<typename U> static char f(SFINAE<int Fallback::*, &U::MinDeltaSeconds>*); 
-    template<typename U> static int f(...); 
+    template<typename U> static char f(SFINAE<int Fallback::*, &U::MinDeltaSeconds>*);
+    template<typename U> static int f(...);
 
     static bool const value = sizeof(f<Combined>(0)) == sizeof(int);
 };
@@ -104,7 +104,7 @@ extern "C" bool SetTickDeltaBounds(UObject* _this, float MinDeltaSeconds, float 
     printf("World null\n");
     return false;
   }
-  return SetTickDeltaBoundsInternal(World, MinDeltaSeconds, MaxDeltaSeconds, 
+  return SetTickDeltaBoundsInternal(World, MinDeltaSeconds, MaxDeltaSeconds,
       std::integral_constant<bool, UWorldHasMinDeltaSeconds::value>());
 }
 
@@ -207,7 +207,7 @@ void FSceneView__SafeDeprojectFVector2D(const FSceneView* SceneView, const FVect
 {
   const FMatrix InverseViewMatrix = SceneView->ViewMatrices.ViewMatrix.Inverse();
   const FMatrix InvProjectionMatrix = SceneView->ViewMatrices.GetInvProjMatrix();
-  
+
   SceneView->DeprojectScreenToWorld(ScreenPos, SceneView->UnscaledViewRect, InverseViewMatrix, InvProjectionMatrix, out_WorldOrigin, out_WorldDirection);
 }
 
@@ -653,5 +653,32 @@ extern "C" bool CaptureDepthField(UObject* _this, const IntSize* size, void* dat
       }
     }
   }
+  return true;
+}
+
+/**
+ * Return the pose of an actor
+ */
+extern "C" bool GetActorPose(UObject* _this,void* location_data, const AActor* object, bool verbose)
+{
+
+  FTransform actorTransform = object->GetTransform();
+  FQuat actorQuat = actorTransform.GetRotationV();
+  FVector actorTranslation = actorTransform.GetTranslationV();
+  float* location_values    = (float*) location_data;
+  *location_values = actorQuat.W;
+  location_values++;
+  *location_values = actorQuat.X;
+  location_values++;
+  *location_values = actorQuat.Y;
+  location_values++;
+  *location_values = actorQuat.Z;
+  location_values++;
+  *location_values = actorTranslation.X;
+  location_values++;
+  *location_values = actorTranslation.Y;
+  location_values++;
+  *location_values = actorTranslation.Z;
+
   return true;
 }

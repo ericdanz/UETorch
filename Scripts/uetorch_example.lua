@@ -7,6 +7,7 @@
 -------------------------------------------------------------------------------
 
 require 'uetorch'
+require 'image'
 
 local M = {}
 
@@ -47,6 +48,7 @@ end
 -------------------------------------------------------------------------------
 local function ExampleTickHandler(dt)
    local seg = ObjectSegmentation(cubes, 8)
+   image.save('/home/ed/Desktop/Cube.jpg',seg:float())
    local centerStrip = seg:select(2, math.floor(seg:size(2)/2))
    if centerStrip:sum() > 0 then
       -- if there's a block in the middle of the screen move to it
